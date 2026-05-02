@@ -29,6 +29,7 @@ class AuthService:
             username=user.username,
             email=user.email,
             full_name=user.full_name,
+            role=user.role,
             is_active=user.is_active,
             created_at=user.created_at,
         )
@@ -40,7 +41,7 @@ class AuthService:
             raise ValueError("Invalid email or password")
 
         access_token = create_access_token(
-            data={"sub": str(user.id), "email": user.email}
+            data={"sub": str(user.id), "email": user.email, "role": user.role, "username": user.username}
         )
 
         return {
@@ -48,4 +49,54 @@ class AuthService:
             "token_type": "bearer",
             "user_id": user.id,
             "username": user.username,
+            "role": user.role,
         }
+
+    def request_password_reset(self, email: str):
+        from app.models.user import User
+        from app.services.email_service import EmailService
+        import random
+        from datetime import datetime, timedelta
+
+        user = self.user_repo.get_by_email(email)
+        if not user:
+            # We don't want to leak whether the email exists, so we just return silently
+            # However, for UX in some apps, an error is returned. Let's return normally.
+            return True
+
+        # Generate 6 digit OTP
+        otp = str(random.randint(100000, 999999))
+        
+        # Save to user
+        user.reset_otp = otp
+        user.reset_otp_expires_at = datetime.utcnow() + timedelta(minutes=5)
+        
+        self.user_repo.db.commit()
+
+        # Send email
+        EmailService.send_otp_email(user.email, otp)
+        return True
+
+    def verify_otp_and_reset_password(self, email: str, otp: str, new_password: str):
+        from datetime import datetime
+
+        user = self.user_repo.get_by_email(email)
+        if not user:
+            raise ValueError("Invalid email or OTP")
+
+        if not user.reset_otp or user.reset_otp != otp:
+            raise ValueError("Invalid OTP")
+
+        if not user.reset_otp_expires_at or user.reset_otp_expires_at < datetime.utcnow():
+            raise ValueError("OTP has expired")
+
+        # Update password
+        user.hashed_password = get_password_hash(new_password)
+        
+        # Clear OTP
+        user.reset_otp = None
+        user.reset_otp_expires_at = None
+        
+        self.user_repo.db.commit()
+        return True
+

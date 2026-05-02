@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const Button = ({ children, isLoading, icon: Icon, variant = 'primary', onClick, type = 'button', ...props }) => {
+const Button = ({ children, isLoading, icon: Icon, variant = 'primary', onClick, type = 'button', style: customStyle, ...props }) => {
   const styles = {
     primary: {
       background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
@@ -44,6 +44,7 @@ const Button = ({ children, isLoading, icon: Icon, variant = 'primary', onClick,
         opacity: isLoading ? 0.7 : 1,
         transition: 'all 0.2s',
         ...styles[variant],
+        ...customStyle,
       }}
       {...props}
     >

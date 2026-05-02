@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Kanban, LogOut, ChevronLeft, ChevronRight, CheckSquare } from 'lucide-react';
+import { LayoutDashboard, Kanban, LogOut, ChevronLeft, ChevronRight, CheckSquare, Users } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
 const Sidebar = ({ onAddTask }) => {
@@ -11,10 +11,16 @@ const Sidebar = ({ onAddTask }) => {
     navigate('/login');
   };
 
+  const userRole = localStorage.getItem('user_role');
+
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: Kanban, label: 'Tasks Board', path: '/board' },
   ];
+
+  if (userRole === 'admin') {
+    menuItems.push({ icon: Users, label: 'Admin Dashboard', path: '/admin' });
+  }
 
   const sidebarStyle = {
     width: isCollapsed ? '80px' : '280px',

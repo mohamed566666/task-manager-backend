@@ -15,6 +15,7 @@ class UserCreate(UserBase):
 
 class UserResponse(UserBase):
     id: int
+    role: str
     is_active: bool
     created_at: datetime
 
@@ -30,3 +31,15 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    username: str
+    role: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str

@@ -5,10 +5,12 @@ import { useTasks } from '../context/TaskContext';
 import Column from '../components/board/Column';
 import TaskCard from '../components/board/TaskCard';
 import AddTaskModal from '../components/modals/AddTaskModal';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, Tag } from 'lucide-react';
+
+const CATEGORIES = ['All', 'Work', 'Study', 'Personal', 'Other'];
 
 const TasksBoard = () => {
-  const { tasks, updateTaskStatus, filterPriority, setFilterPriority } = useTasks();
+  const { tasks, updateTaskStatus, filterPriority, setFilterPriority, filterCategory, setFilterCategory } = useTasks();
   const [activeTask, setActiveTask] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -37,6 +39,26 @@ const TasksBoard = () => {
     setActiveTask(null);
   };
 
+  const selectStyle = {
+    background: 'transparent',
+    border: 'none',
+    color: '#94a3b8',
+    fontSize: '0.88rem',
+    outline: 'none',
+    cursor: 'pointer',
+    fontFamily: 'Inter, sans-serif',
+  };
+
+  const filterBoxStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: '12px',
+    padding: '8px 14px',
+  };
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '28px' }}>
       {/* Header */}
@@ -46,19 +68,35 @@ const TasksBoard = () => {
           <p style={{ color: '#64748b', marginTop: '4px', fontSize: '0.95rem' }}>Drag and drop tasks between columns</p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          {/* Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '8px 14px' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Priority Filter */}
+          <div style={filterBoxStyle}>
             <Filter size={15} color="#64748b" />
             <select
               value={filterPriority}
               onChange={e => setFilterPriority(e.target.value)}
-              style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '0.88rem', outline: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+              style={selectStyle}
             >
-              <option value="all">All</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
+              <option value="all">All Priorities</option>
+              <option value="high">🔴 High</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+          </div>
+
+          {/* Category Filter */}
+          <div style={filterBoxStyle}>
+            <Tag size={15} color="#64748b" />
+            <select
+              value={filterCategory}
+              onChange={e => setFilterCategory(e.target.value)}
+              style={selectStyle}
+            >
+              {CATEGORIES.map(cat => (
+                <option key={cat} value={cat === 'All' ? 'all' : cat}>
+                  {cat === 'All' ? 'All Categories' : cat}
+                </option>
+              ))}
             </select>
           </div>
 

@@ -8,7 +8,11 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import Dashboard from './pages/Dashboard';
 import TasksBoard from './pages/TasksBoard';
 
+import AdminDashboard from './pages/AdminDashboard';
+
 function App() {
+  const userRole = localStorage.getItem('user_role');
+
   return (
     <TaskProvider>
       <Router>
@@ -33,6 +37,20 @@ function App() {
               <AppLayout>
                 <TasksBoard />
               </AppLayout>
+            } 
+          />
+
+          {/* Admin Route */}
+          <Route 
+            path="/admin" 
+            element={
+              userRole === 'admin' ? (
+                <AppLayout>
+                  <AdminDashboard />
+                </AppLayout>
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )
             } 
           />
 

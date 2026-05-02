@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Input from '../components/Input';
-import Button from '../components/Button';
-import AuthLayout from '../components/AuthLayout';
+import Input from '../components/ui/Input';
+import Button from '../components/ui/Button';
+import AuthLayout from '../components/auth/AuthLayout';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
