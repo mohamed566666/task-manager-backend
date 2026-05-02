@@ -19,7 +19,7 @@ class TaskBase(BaseModel):
 
 
 class TaskCreate(TaskBase):
-    owner_id: int
+    pass
 
 
 class TaskUpdate(BaseModel):

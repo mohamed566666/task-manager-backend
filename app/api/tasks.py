@@ -1,0 +1,96 @@
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.orm import Session
+from typing import List, Optional
+from app.core.database import get_db
+from app.core.auth import get_current_user
+from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
+from app.services.task_service import TaskService
+from app.models.user import User
+
+router = APIRouter()
+
+
+@router.post("/", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
+def create_task(
+    task_data: TaskCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        service = TaskService(db)
+        return service.create_task(current_user.id, task_data)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.get("/", response_model=List[TaskResponse])
+def get_my_tasks(
+    sort_by: Optional[str] = Query("priority", regex="^(priority|deadline|created)$"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = TaskService(db)
+    return service.get_user_tasks_sorted(current_user.id, sort_by)
+
+
+@router.get("/upcoming", response_model=List[TaskResponse])
+def get_upcoming_tasks(
+    days: int = Query(7, ge=1, le=30),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = TaskService(db)
+    return service.get_upcoming_tasks(current_user.id, days)
+
+
+@router.put("/{task_id}", response_model=TaskResponse)
+def update_task(
+    task_id: int,
+    task_data: TaskUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        service = TaskService(db)
+        task = service.update_task(task_id, task_data, current_user.id)
+        if not task:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+            )
+        return task
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
+
+@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_task(
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        service = TaskService(db)
+        if not service.delete_task(task_id, current_user.id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+            )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
+
+@router.patch("/{task_id}/complete", response_model=TaskResponse)
+def complete_task(
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        service = TaskService(db)
+        task = service.complete_task(task_id, current_user.id)
+        if not task:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+            )
+        return task
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
