@@ -1,0 +1,11 @@
+# Database
+DATABASE_URL=postgresql://postgres:admin123@localhost:5432/task_manager_db
+# JWT
+SECRET_KEY=your-super-secret-key-here-123456789
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Server
+HOST=127.0.0.1
+PORT=8000
+DEBUG=True
