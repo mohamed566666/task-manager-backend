@@ -32,6 +32,7 @@ const mapToBackend = (task) => ({
 
 export const TaskProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,8 +53,7 @@ export const TaskProvider = ({ children }) => {
     window.location.href = '/login';
   };
 
-  // ── FETCH ──────────────────────────────────────────────────
-  const fetchTasks = useCallback(async () => {
+  const fetchTasksAndCategories = useCallback(async () => {
     const token = getToken();
     if (!token) { setIsLoading(false); return; }
     setIsLoading(true);
@@ -63,13 +63,24 @@ export const TaskProvider = ({ children }) => {
       const endpoint = role === 'admin'
         ? `${API_BASE}/api/tasks/all`
         : `${API_BASE}/api/tasks/`;
-      const res = await fetch(endpoint, { headers: authHeaders() });
-      if (res.status === 401) { handleUnauthorized(); return; }
-      if (!res.ok) throw new Error('Failed to fetch tasks');
-      const data = await res.json();
+      
+      const [resTasks, resCats] = await Promise.all([
+        fetch(endpoint, { headers: authHeaders() }),
+        fetch(`${API_BASE}/api/categories/`, { headers: authHeaders() })
+      ]);
+
+      if (resTasks.status === 401 || resCats.status === 401) { handleUnauthorized(); return; }
+      if (!resTasks.ok) throw new Error('Failed to fetch tasks');
+      
+      const data = await resTasks.json();
       const mapped = data.map(mapTask);
       setTasks(mapped);
       initNotifications(() => mapped);
+
+      if (resCats.ok) {
+        const catData = await resCats.json();
+        setCategories(catData);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -77,7 +88,7 @@ export const TaskProvider = ({ children }) => {
     }
   }, []);
 
-  useEffect(() => { fetchTasks(); }, [fetchTasks]);
+  useEffect(() => { fetchTasksAndCategories(); }, [fetchTasksAndCategories]);
 
   // ── ADD ────────────────────────────────────────────────────
   const addTask = async (task) => {
@@ -188,6 +199,69 @@ export const TaskProvider = ({ children }) => {
     }
   };
 
+  // ── CATEGORIES CRUD ────────────────────────────────────────
+  const addCategory = async (name, description = '') => {
+    try {
+      const res = await fetch(`${API_BASE}/api/categories/`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ name, description }),
+      });
+      if (res.status === 401) { handleUnauthorized(); return; }
+      if (!res.ok) throw new Error('Failed to create category');
+      const newCat = await res.json();
+      setCategories(prev => [...prev, newCat]);
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const updateCategory = async (id, name, description = '') => {
+    try {
+      const res = await fetch(`${API_BASE}/api/categories/${id}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ name, description }),
+      });
+      if (res.status === 401) { handleUnauthorized(); return; }
+      if (!res.ok) throw new Error('Failed to update category');
+      const updatedCat = await res.json();
+      setCategories(prev => prev.map(c => c.id === id ? updatedCat : c));
+      
+      // Update tasks referencing this category name (if it changed)
+      const oldCat = categories.find(c => c.id === id);
+      if (oldCat && oldCat.name !== name) {
+        setTasks(prev => prev.map(t => t.category === oldCat.name ? { ...t, category: name } : t));
+      }
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const deleteCategory = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/categories/${id}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      if (res.status === 401) { handleUnauthorized(); return; }
+      if (!res.ok && res.status !== 204) throw new Error('Failed to delete category');
+      
+      const catToDelete = categories.find(c => c.id === id);
+      setCategories(prev => prev.filter(c => c.id !== id));
+      
+      // Update tasks referencing this category to fallback to 'Other' or 'Work'
+      if (catToDelete) {
+        setTasks(prev => prev.map(t => t.category === catToDelete.name ? { ...t, category: 'Work' } : t));
+      }
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
   // ── FILTER ─────────────────────────────────────────────────
   const filteredTasks = tasks.filter(task => {
     const matchesSearch =
@@ -210,17 +284,21 @@ export const TaskProvider = ({ children }) => {
   return (
     <TaskContext.Provider value={{
       tasks: filteredTasks,
+      categories,
       isLoading,
       error,
       addTask,
       editTask,
       updateTaskStatus,
       deleteTask,
+      addCategory,
+      updateCategory,
+      deleteCategory,
       searchQuery, setSearchQuery,
       filterPriority, setFilterPriority,
       filterCategory, setFilterCategory,
       stats,
-      refetch: fetchTasks,
+      refetch: fetchTasksAndCategories,
     }}>
       {children}
     </TaskContext.Provider>

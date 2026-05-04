@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Kanban, LogOut, ChevronLeft, ChevronRight, CheckSquare, Users } from 'lucide-react';
+import { LayoutDashboard, Kanban, LogOut, ChevronLeft, ChevronRight, CheckSquare, Users, Folder } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import ManageCategoriesModal from '../modals/ManageCategoriesModal';
 
 const Sidebar = ({ onAddTask }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -85,7 +87,17 @@ const Sidebar = ({ onAddTask }) => {
       </nav>
 
       {/* Footer */}
-      <div style={{ padding: '12px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ padding: '12px', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <button
+          onClick={() => setIsCatModalOpen(true)}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.05)', color: '#c084fc', cursor: 'pointer', fontWeight: 500, fontSize: '0.95rem', justifyContent: isCollapsed ? 'center' : 'flex-start', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(168,85,247,0.1)'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.2)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; }}
+        >
+          <Folder size={22} />
+          {!isCollapsed && <span>Categories</span>}
+        </button>
+
         <button
           onClick={handleLogout}
           style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '12px', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 500, fontSize: '0.95rem', justifyContent: isCollapsed ? 'center' : 'flex-start', fontFamily: 'Inter, sans-serif', transition: 'background 0.15s' }}
@@ -96,6 +108,8 @@ const Sidebar = ({ onAddTask }) => {
           {!isCollapsed && <span>Logout</span>}
         </button>
       </div>
+
+      <ManageCategoriesModal isOpen={isCatModalOpen} onClose={() => setIsCatModalOpen(false)} />
     </div>
   );
 };

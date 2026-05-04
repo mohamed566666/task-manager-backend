@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Pencil, Loader } from 'lucide-react';
 import { useTasks } from '../../context/TaskContext';
 
-const CATEGORIES = ['Work', 'Study', 'Personal', 'Other'];
+// Removed hardcoded CATEGORIES array
+
+const DEFAULT_CATEGORIES = ['Work', 'Study', 'Personal', 'Other'];
 
 const categoryColors = {
   Work:     { bg: 'rgba(34,197,94,0.15)',   color: '#4ade80',  border: 'rgba(34,197,94,0.3)' },
@@ -30,7 +32,11 @@ const labelStyle = {
 };
 
 const EditTaskModal = ({ task, onClose }) => {
-  const { editTask } = useTasks();
+  const { editTask, categories } = useTasks();
+
+  // Merge: default categories first, then any user-created ones not in defaults
+  const dynamicExtras = categories.filter(c => !DEFAULT_CATEGORIES.includes(c.name)).map(c => c.name);
+  const allCategories = [...DEFAULT_CATEGORIES, ...dynamicExtras];
 
   const [formData, setFormData] = useState({
     title:       task.title || '',
@@ -168,13 +174,13 @@ const EditTaskModal = ({ task, onClose }) => {
                 <div>
                   <label style={labelStyle}>Category</label>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {CATEGORIES.map(cat => {
-                      const c = categoryColors[cat];
-                      const isSelected = formData.category === cat;
+                    {allCategories.map(catName => {
+                      const c = categoryColors[catName] || categoryColors.Other;
+                      const isSelected = formData.category === catName;
                       return (
-                        <button key={cat} type="button" onClick={() => handleChange('category', cat)}
+                        <button key={catName} type="button" onClick={() => handleChange('category', catName)}
                           style={{ padding: '5px 14px', borderRadius: '20px', border: `1.5px solid ${isSelected ? c.border : 'rgba(255,255,255,0.08)'}`, background: isSelected ? c.bg : 'rgba(255,255,255,0.03)', color: isSelected ? c.color : '#64748b', fontWeight: isSelected ? 700 : 500, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s' }}>
-                          {cat}
+                          {catName}
                         </button>
                       );
                     })}

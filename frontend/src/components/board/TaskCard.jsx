@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Calendar, MoreHorizontal, X, Trash2, Eye, Pencil } from 'lucide-react';
+import { Calendar, MoreHorizontal, X, Trash2, Eye, Pencil, MessageSquare, Send, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTasks } from '../../context/TaskContext';
 import EditTaskModal from '../modals/EditTaskModal';
@@ -27,7 +27,186 @@ const categoryColors = {
 
 const getCategoryStyle = (cat) => categoryColors[cat] || categoryColors.Other;
 
-// ── Task Detail Modal ─────────────────────────────────────────
+// ── Format relative time ───────────────────────────────────────────────────
+const formatRelative = (dateStr) => {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+};
+
+// ── Comments Section ───────────────────────────────────────────────────────
+const CommentsSection = ({ taskId }) => {
+  const [comments, setComments]   = useState([]);
+  const [newText, setNewText]     = useState('');
+  const [loading, setLoading]     = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError]         = useState('');
+  const bottomRef = useRef(null);
+
+  const token = localStorage.getItem('access_token');
+  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+
+  const fetchComments = useCallback(async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/tasks/${taskId}/comments`, { headers });
+      if (!res.ok) throw new Error('Failed to load comments');
+      setComments(await res.json());
+    } catch {
+      setError('Could not load comments.');
+    } finally {
+      setLoading(false);
+    }
+  }, [taskId]);
+
+  useEffect(() => { fetchComments(); }, [fetchComments]);
+
+  useEffect(() => {
+    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+  }, [comments]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!newText.trim()) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      const res = await fetch(`http://localhost:8000/api/tasks/${taskId}/comments`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ content: newText.trim() }),
+      });
+      if (!res.ok) throw new Error('Failed to post comment');
+      const comment = await res.json();
+      setComments(prev => [...prev, comment]);
+      setNewText('');
+    } catch {
+      setError('Failed to post comment. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div style={{ marginTop: '28px' }}>
+      {/* Section Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+        <MessageSquare size={16} color="#6366f1" />
+        <p style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+          Comments {comments.length > 0 && `(${comments.length})`}
+        </p>
+      </div>
+
+      {/* Comments List */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '240px', overflowY: 'auto', paddingRight: '4px', marginBottom: '14px' }}>
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+            <Loader2 size={20} color="#6366f1" style={{ animation: 'spin 1s linear infinite' }} />
+          </div>
+        ) : comments.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '20px 0', color: '#334155', fontSize: '0.85rem' }}>
+            No comments yet. Be the first to comment!
+          </div>
+        ) : (
+          comments.map(c => (
+            <motion.div
+              key={c.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: '12px',
+                padding: '12px 14px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                  {/* Avatar initials */}
+                  <div style={{
+                    width: '26px', height: '26px', borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.65rem', fontWeight: 700, color: '#fff', flexShrink: 0,
+                  }}>
+                    {(c.author_username || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#c7d2fe' }}>
+                    {c.author_username || 'User'}
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.72rem', color: '#475569' }}>
+                  {formatRelative(c.created_at)}
+                </span>
+              </div>
+              <p style={{ fontSize: '0.88rem', color: '#94a3b8', margin: 0, lineHeight: 1.6, paddingLeft: '33px' }}>
+                {c.content}
+              </p>
+            </motion.div>
+          ))
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Error */}
+      {error && (
+        <p style={{ color: '#f87171', fontSize: '0.82rem', margin: '0 0 10px' }}>{error}</p>
+      )}
+
+      {/* Input */}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+        <textarea
+          value={newText}
+          onChange={e => setNewText(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e); } }}
+          placeholder="Write a comment… (Enter to send)"
+          rows={2}
+          style={{
+            flex: 1,
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '12px',
+            padding: '10px 14px',
+            color: '#e2e8f0',
+            fontSize: '0.88rem',
+            fontFamily: 'Inter, sans-serif',
+            resize: 'none',
+            outline: 'none',
+            lineHeight: 1.5,
+            transition: 'border-color 0.2s',
+          }}
+          onFocus={e => e.target.style.borderColor = 'rgba(99,102,241,0.5)'}
+          onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+          disabled={submitting}
+        />
+        <button
+          type="submit"
+          disabled={submitting || !newText.trim()}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '42px', height: '42px', borderRadius: '12px',
+            background: newText.trim() ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : 'rgba(99,102,241,0.15)',
+            border: 'none', cursor: newText.trim() ? 'pointer' : 'not-allowed',
+            transition: 'all 0.2s', flexShrink: 0,
+            boxShadow: newText.trim() ? '0 4px 14px rgba(99,102,241,0.35)' : 'none',
+          }}
+        >
+          {submitting
+            ? <Loader2 size={17} color="#fff" style={{ animation: 'spin 1s linear infinite' }} />
+            : <Send size={17} color={newText.trim() ? '#fff' : '#475569'} />
+          }
+        </button>
+      </form>
+
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+};
+
+// ── Task Detail Modal ──────────────────────────────────────────────────────
 const TaskDetailModal = ({ task, onClose }) => {
   const p = priorityColors[task.priority] || priorityColors.low;
   const s = statusColors[task.status] || statusColors.todo;
@@ -40,21 +219,23 @@ const TaskDetailModal = ({ task, onClose }) => {
         onClick={onClose}
         style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', zIndex: 200 }}
       />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.92, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.92, y: 20 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        onClick={e => e.stopPropagation()}
-        style={{
-          position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          width: '90%', maxWidth: '640px',
-          background: '#13131c', border: '1px solid rgba(255,255,255,0.12)',
-          borderRadius: '28px', padding: '36px', zIndex: 201,
-          fontFamily: 'Inter, sans-serif', boxShadow: '0 40px 100px rgba(0,0,0,0.7)',
-          maxHeight: '85vh', overflowY: 'auto',
-        }}
-      >
+      <div style={{ position: 'fixed', inset: 0, zIndex: 201, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.92, y: 20 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+          onClick={e => e.stopPropagation()}
+          style={{
+            pointerEvents: 'auto',
+            width: '90%', maxWidth: '640px',
+            background: '#13131c', border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: '28px', padding: '36px',
+            fontFamily: 'Inter, sans-serif', boxShadow: '0 40px 100px rgba(0,0,0,0.7)',
+            maxHeight: '90vh', overflowY: 'auto',
+          }}
+        >
+        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
           <div style={{ flex: 1, paddingRight: '12px' }}>
             <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: '#f8fafc', margin: '0 0 10px' }}>{task.title}</h2>
@@ -73,11 +254,13 @@ const TaskDetailModal = ({ task, onClose }) => {
 
         <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)', marginBottom: '20px' }} />
 
+        {/* Description */}
         <div style={{ marginBottom: '20px' }}>
           <p style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Description</p>
           <p style={{ fontSize: '0.95rem', color: '#94a3b8', lineHeight: 1.7, margin: 0 }}>{task.description || 'No description provided.'}</p>
         </div>
 
+        {/* Deadline */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '12px 16px' }}>
           <Calendar size={18} color="#6366f1" />
           <div>
@@ -85,12 +268,19 @@ const TaskDetailModal = ({ task, onClose }) => {
             <p style={{ fontSize: '0.95rem', color: '#e2e8f0', margin: 0, fontWeight: 600 }}>{task.dueDate || 'Not set'}</p>
           </div>
         </div>
+
+        {/* Divider */}
+        <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)', marginTop: '28px' }} />
+
+        {/* Comments */}
+        <CommentsSection taskId={task.id} />
       </motion.div>
+      </div>
     </AnimatePresence>
   );
 };
 
-// ── Delete Confirm Dialog ─────────────────────────────────────
+// ── Delete Confirm Dialog ──────────────────────────────────────────────────
 const DeleteConfirmDialog = ({ task, onConfirm, onCancel }) => (
   <AnimatePresence>
     <motion.div
@@ -132,7 +322,7 @@ const DeleteConfirmDialog = ({ task, onConfirm, onCancel }) => (
   </AnimatePresence>
 );
 
-// ── TaskCard ──────────────────────────────────────────────────
+// ── TaskCard ───────────────────────────────────────────────────────────────
 const TaskCard = ({ task }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
   const { deleteTask } = useTasks();
@@ -258,6 +448,12 @@ const TaskCard = ({ task }) => {
         <div style={{ display: 'flex', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', gap: '6px', color: '#475569', fontSize: '0.76rem' }}>
           <Calendar size={12} />
           <span>{task.dueDate || 'No date'}</span>
+          {task.comments_count > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto', color: '#6366f1' }}>
+              <MessageSquare size={12} />
+              <span>{task.comments_count}</span>
+            </div>
+          )}
         </div>
       </div>
 

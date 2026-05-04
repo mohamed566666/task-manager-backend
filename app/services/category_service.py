@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.repositories.category_repo import CategoryRepository
-from app.schemas.category import CategoryCreate, CategoryResponse
+from app.schemas.category import CategoryCreate, CategoryResponse, CategoryUpdate
 
 
 class CategoryService:
@@ -35,3 +35,29 @@ class CategoryService:
             )
             for c in categories
         ]
+
+    def update_category(
+        self, user_id: int, user_role: str, category_id: int, data: "CategoryUpdate"
+    ) -> "CategoryResponse":
+        category = self.category_repo.get_by_id(category_id)
+        if not category:
+            raise ValueError("Category not found")
+        if user_role != "admin" and category.user_id != user_id:
+            raise ValueError("Not authorized to update this category")
+
+        updated = self.category_repo.update(category_id, **data.dict(exclude_unset=True))
+        return CategoryResponse(
+            id=updated.id,
+            name=updated.name,
+            description=updated.description,
+            user_id=updated.user_id,
+        )
+
+    def delete_category(self, user_id: int, user_role: str, category_id: int) -> bool:
+        category = self.category_repo.get_by_id(category_id)
+        if not category:
+            raise ValueError("Category not found")
+        if user_role != "admin" and category.user_id != user_id:
+            raise ValueError("Not authorized to delete this category")
+
+        return self.category_repo.delete(category_id)

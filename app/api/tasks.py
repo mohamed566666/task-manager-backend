@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.core.database import get_db
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
+from app.schemas.comment import CommentCreate, CommentResponse
 from app.services.task_service import TaskService
 from app.models.user import User
 from app.api.auth import get_current_user, get_current_admin_user
@@ -115,3 +116,64 @@ def complete_task(
         return task
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
+
+# ── Comments ────────────────────────────────────────────────────────────────
+
+@router.get("/{task_id}/comments", response_model=List[CommentResponse])
+def get_comments(
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get all comments for a task."""
+    from app.models.task import Task
+    from app.models.comment import Comment
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    comments = db.query(Comment).filter(Comment.task_id == task_id).order_by(Comment.created_at).all()
+    result = []
+    for c in comments:
+        result.append(CommentResponse(
+            id=c.id,
+            content=c.content,
+            created_at=c.created_at,
+            task_id=c.task_id,
+            author_id=c.author_id,
+            author_username=c.author.username if c.author else "Unknown",
+        ))
+    return result
+
+
+@router.post("/{task_id}/comments", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
+def add_comment(
+    task_id: int,
+    comment_data: CommentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Add a comment to a task."""
+    from app.models.task import Task
+    from app.models.comment import Comment
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    if not comment_data.content.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Comment cannot be empty")
+    comment = Comment(
+        content=comment_data.content.strip(),
+        task_id=task_id,
+        author_id=current_user.id,
+    )
+    db.add(comment)
+    db.commit()
+    db.refresh(comment)
+    return CommentResponse(
+        id=comment.id,
+        content=comment.content,
+        created_at=comment.created_at,
+        task_id=comment.task_id,
+        author_id=comment.author_id,
+        author_username=current_user.username,
+    )

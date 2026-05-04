@@ -63,15 +63,15 @@ const RegisterPage = () => {
         )}
 
         <Input label="Username" name="username" type="text" icon={User}
-          placeholder="johndoe123" value={formData.username}
+          placeholder="zizo" value={formData.username}
           onChange={handleChange} error={errors.username} />
 
         <Input label="Full Name" name="name" type="text" icon={User}
-          placeholder="John Doe" value={formData.name}
+          placeholder="Ahmed Mohamed" value={formData.name}
           onChange={handleChange} error={errors.name} />
 
         <Input label="Email Address" name="email" type="email" icon={Mail}
-          placeholder="name@company.com" value={formData.email}
+          placeholder="ahmed@gmail.com" value={formData.email}
           onChange={handleChange} error={errors.email} />
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

@@ -29,6 +29,7 @@ class TaskService:
             created_at=task.created_at,
             updated_at=task.updated_at,
             owner_id=task.owner_id,
+            comments_count=len(task.comments) if getattr(task, 'comments', None) is not None else 0,
         )
 
     def create_task(self, user_id: int, task_data: TaskCreate) -> TaskResponse:
@@ -103,6 +104,7 @@ class TaskService:
             "created_at": task.created_at,
             "updated_at": task.updated_at,
             "owner_id": task.owner_id,
+            "comments_count": len(task.comments) if getattr(task, 'comments', None) is not None else 0,
         }
 
     def _dict_to_task_response(self, task_dict: Dict[str, Any]) -> TaskResponse:

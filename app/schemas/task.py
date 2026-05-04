@@ -53,6 +53,7 @@ class TaskResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     owner_id: int
+    comments_count: Optional[int] = 0
 
     class Config:
         from_attributes = True

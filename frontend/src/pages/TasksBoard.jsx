@@ -7,10 +7,10 @@ import TaskCard from '../components/board/TaskCard';
 import AddTaskModal from '../components/modals/AddTaskModal';
 import { Plus, Filter, Tag } from 'lucide-react';
 
-const CATEGORIES = ['All', 'Work', 'Study', 'Personal', 'Other'];
+const DEFAULT_CATEGORIES = ['Work', 'Study', 'Personal', 'Other'];
 
 const TasksBoard = () => {
-  const { tasks, updateTaskStatus, filterPriority, setFilterPriority, filterCategory, setFilterCategory } = useTasks();
+  const { tasks, categories, updateTaskStatus, filterPriority, setFilterPriority, filterCategory, setFilterCategory } = useTasks();
   const [activeTask, setActiveTask] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -92,11 +92,18 @@ const TasksBoard = () => {
               onChange={e => setFilterCategory(e.target.value)}
               style={selectStyle}
             >
-              {CATEGORIES.map(cat => (
-                <option key={cat} value={cat === 'All' ? 'all' : cat}>
-                  {cat === 'All' ? 'All Categories' : cat}
-                </option>
+              <option value="all">All Categories</option>
+              {/* Default categories always shown */}
+              {DEFAULT_CATEGORIES.map(cat => (
+                <option key={`default-${cat}`} value={cat}>{cat}</option>
               ))}
+              {/* Dynamic user-created categories (avoid duplicates) */}
+              {categories
+                .filter(c => !DEFAULT_CATEGORIES.includes(c.name))
+                .map(cat => (
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                ))
+              }
             </select>
           </div>
 

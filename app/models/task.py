@@ -39,3 +39,7 @@ class Task(Base):
     shared_with = relationship(
         "SharedTask", back_populates="task", cascade="all, delete-orphan"
     )
+    comments = relationship(
+        "Comment", back_populates="task", cascade="all, delete-orphan",
+        order_by="Comment.created_at"
+    )

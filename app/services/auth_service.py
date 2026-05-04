@@ -9,6 +9,19 @@ class AuthService:
         self.user_repo = UserRepository(db)
 
     def register(self, user_data: UserCreate) -> UserResponse:
+        # Validate that the email is a real, deliverable address (DNS/MX check)
+        try:
+            from email_validator import validate_email, EmailNotValidError
+            try:
+                validate_email(user_data.email, check_deliverability=True)
+            except EmailNotValidError as e:
+                raise ValueError(f"Invalid email address: {str(e)}")
+        except ImportError:
+            # Fallback: basic format check if email_validator is not installed
+            import re
+            if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', user_data.email):
+                raise ValueError("Please enter a valid email address")
+
         if self.user_repo.get_by_email(user_data.email):
             raise ValueError("Email already registered")
 

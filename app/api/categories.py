@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db
 from app.core.auth import get_current_user
-from app.schemas.category import CategoryCreate, CategoryResponse
+from app.schemas.category import CategoryCreate, CategoryResponse, CategoryUpdate
 from app.services.category_service import CategoryService
 from app.models.user import User
 
@@ -29,3 +29,34 @@ def get_my_categories(
 ):
     service = CategoryService(db)
     return service.get_user_categories(current_user.id)
+
+
+@router.put("/{category_id}", response_model=CategoryResponse)
+def update_category(
+    category_id: int,
+    category_data: CategoryUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        service = CategoryService(db)
+        return service.update_category(current_user.id, current_user.role, category_id, category_data)
+    except ValueError as e:
+        if "authorized" in str(e).lower():
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_category(
+    category_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        service = CategoryService(db)
+        service.delete_category(current_user.id, current_user.role, category_id)
+    except ValueError as e:
+        if "authorized" in str(e).lower():
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

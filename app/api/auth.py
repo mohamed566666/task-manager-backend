@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.user import UserCreate, UserResponse, UserLogin, Token, ForgotPasswordRequest, ResetPasswordRequest
@@ -31,6 +31,15 @@ def get_current_admin_user(current_user=Depends(get_current_user)):
     if current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough privileges")
     return current_user
+
+
+@router.get("/check-email")
+def check_email(email: str = Query(...), db: Session = Depends(get_db)):
+    """Check if an email address is registered in the system."""
+    from app.repositories.user_repo import UserRepository
+    user_repo = UserRepository(db)
+    user = user_repo.get_by_email(email)
+    return {"exists": user is not None}
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
