@@ -47,7 +47,7 @@ const Sidebar = ({ onAddTask }) => {
             <div style={{ width: '34px', height: '34px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <CheckSquare size={18} color="#fff" />
             </div>
-            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: '#f8fafc', whiteSpace: 'nowrap' }}>Task Master</span>
+            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: '#f8fafc', whiteSpace: 'nowrap' }}>Task Manager</span>
           </div>
         )}
         <button

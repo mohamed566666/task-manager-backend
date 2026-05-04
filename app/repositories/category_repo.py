@@ -8,12 +8,12 @@ class CategoryRepository(BaseRepository[Category]):
     def __init__(self, db: Session):
         super().__init__(db, Category)
 
-    def get_by_user(self, user_id: int) -> List[Category]:
-        return self.db.query(Category).filter(Category.user_id == user_id).all()
+    def get_all_categories(self) -> List[Category]:
+        return self.db.query(Category).all()
 
-    def get_by_name(self, user_id: int, name: str) -> Optional[Category]:
+    def get_by_name(self, name: str) -> Optional[Category]:
         return (
             self.db.query(Category)
-            .filter(Category.user_id == user_id, Category.name == name)
+            .filter(Category.name == name)
             .first()
         )

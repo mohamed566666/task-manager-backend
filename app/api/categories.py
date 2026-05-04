@@ -24,11 +24,11 @@ def create_category(
 
 
 @router.get("/", response_model=List[CategoryResponse])
-def get_my_categories(
+def get_categories(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     service = CategoryService(db)
-    return service.get_user_categories(current_user.id)
+    return service.get_all_categories()
 
 
 @router.put("/{category_id}", response_model=CategoryResponse)

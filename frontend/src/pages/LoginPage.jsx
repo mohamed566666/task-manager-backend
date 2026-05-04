@@ -65,9 +65,11 @@ const LoginPage = () => {
         const payload = JSON.parse(atob(data.access_token.split('.')[1]));
         localStorage.setItem('user_name', payload.username || payload.email || formData.email);
         localStorage.setItem('user_role', payload.role || 'user');
+        localStorage.setItem('user_id', String(payload.sub || data.user_id || ''));
       } catch {
         localStorage.setItem('user_name', formData.email);
         localStorage.setItem('user_role', 'user');
+        localStorage.setItem('user_id', String(data.user_id || ''));
       }
       window.location.href = '/dashboard';
     } catch (err) {
