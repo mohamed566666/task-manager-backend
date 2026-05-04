@@ -5,7 +5,7 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import AuthLayout from '../components/auth/AuthLayout';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'http://127.0.0.1:8000';
 
 const ForgotPasswordPage = () => {
   const [step, setStep] = useState(1); // 1: Email, 2: OTP & Password, 3: Success

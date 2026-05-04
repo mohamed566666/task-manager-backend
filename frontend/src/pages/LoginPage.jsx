@@ -40,7 +40,7 @@ const LoginPage = () => {
       // ── Step 1: Check if email exists ──────────────────────────────────
       setEmailStatus('checking');
       const checkRes = await fetch(
-        `http://localhost:8000/api/auth/check-email?email=${encodeURIComponent(formData.email)}`
+        `http://127.0.0.1:8000/api/auth/check-email?email=${encodeURIComponent(formData.email)}`
       );
       const checkData = await checkRes.json();
 
@@ -52,7 +52,7 @@ const LoginPage = () => {
       setEmailStatus('found');
 
       // ── Step 2: Attempt login ───────────────────────────────────────────
-      const response = await fetch('http://localhost:8000/api/auth/login', {
+      const response = await fetch('http://127.0.0.1:8000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, password: formData.password }),

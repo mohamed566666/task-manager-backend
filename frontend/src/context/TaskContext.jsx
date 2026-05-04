@@ -3,7 +3,7 @@ import { initNotifications, saveNotifPref } from '../utils/notificationEngine';
 
 const TaskContext = createContext();
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'http://127.0.0.1:8000';
 
 // Map backend task → frontend shape
 const mapTask = (t) => ({

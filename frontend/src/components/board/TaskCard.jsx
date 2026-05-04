@@ -52,7 +52,7 @@ const CommentsSection = ({ taskId }) => {
 
   const fetchComments = useCallback(async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/tasks/${taskId}/comments`, { headers });
+      const res = await fetch(`http://127.0.0.1:8000/api/tasks/${taskId}/comments`, { headers });
       if (!res.ok) throw new Error('Failed to load comments');
       setComments(await res.json());
     } catch {
@@ -74,7 +74,7 @@ const CommentsSection = ({ taskId }) => {
     setSubmitting(true);
     setError('');
     try {
-      const res = await fetch(`http://localhost:8000/api/tasks/${taskId}/comments`, {
+      const res = await fetch(`http://127.0.0.1:8000/api/tasks/${taskId}/comments`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ content: newText.trim() }),
