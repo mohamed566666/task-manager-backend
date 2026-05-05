@@ -5,6 +5,12 @@ import enum
 from app.core.database import Base
 
 
+class StatusEnum(str, enum.Enum):
+    TODO = "todo"
+    IN_PROGRESS = "in-progress"
+    DONE = "done"
+
+
 class PriorityEnum(str, enum.Enum):
     HIGH = "High"
     MEDIUM = "Medium"
@@ -20,6 +26,8 @@ class Task(Base):
     deadline = Column(DateTime, nullable=False)
     priority = Column(Enum(PriorityEnum), default=PriorityEnum.MEDIUM)
     is_completed = Column(Boolean, default=False)
+    status = Column(String(20), default="todo")
+    category_label = Column(String(50), default="Work")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -30,4 +38,8 @@ class Task(Base):
     category = relationship("Category", back_populates="tasks")
     shared_with = relationship(
         "SharedTask", back_populates="task", cascade="all, delete-orphan"
+    )
+    comments = relationship(
+        "Comment", back_populates="task", cascade="all, delete-orphan",
+        order_by="Comment.created_at"
     )

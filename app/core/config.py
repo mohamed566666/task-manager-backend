@@ -7,11 +7,18 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str
     ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
 
     HOST: str = "127.0.0.1"
     PORT: int = 8000
     DEBUG: bool = False
+
+    # SMTP Settings for Email
+    SMTP_SERVER: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM_EMAIL: Optional[str] = None
 
     class Config:
         env_file = ".env"

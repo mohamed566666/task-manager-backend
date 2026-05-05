@@ -13,6 +13,8 @@ class TaskFactory:
         priority: PriorityEnum,
         owner_id: int,
         category_id: Optional[int] = None,
+        status: str = "todo",
+        category_label: str = "Work",
     ) -> Task:
         return Task(
             title=title,
@@ -21,6 +23,8 @@ class TaskFactory:
             priority=priority,
             owner_id=owner_id,
             category_id=category_id,
+            status=status,
+            category_label=category_label,
         )
 
     @staticmethod

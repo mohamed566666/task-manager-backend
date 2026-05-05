@@ -12,7 +12,10 @@ class User(Base):
     email = Column(String(100), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(100))
+    role = Column(String(20), default="user")
     is_active = Column(Boolean, default=True)
+    reset_otp = Column(String(10), nullable=True)
+    reset_otp_expires_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

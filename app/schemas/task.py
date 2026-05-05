@@ -10,12 +10,20 @@ class PriorityEnum(str, Enum):
     LOW = "Low"
 
 
+class StatusEnum(str, Enum):
+    TODO = "todo"
+    IN_PROGRESS = "in-progress"
+    DONE = "done"
+
+
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
     deadline: datetime
     priority: PriorityEnum
     category_id: Optional[int] = None
+    status: Optional[StatusEnum] = StatusEnum.TODO
+    category_label: Optional[str] = "Work"
 
 
 class TaskCreate(TaskBase):
@@ -29,14 +37,23 @@ class TaskUpdate(BaseModel):
     priority: Optional[PriorityEnum] = None
     is_completed: Optional[bool] = None
     category_id: Optional[int] = None
+    status: Optional[StatusEnum] = None
+    category_label: Optional[str] = None
 
 
-class TaskResponse(TaskBase):
+class TaskResponse(BaseModel):
     id: int
+    title: str
+    description: Optional[str] = None
+    deadline: datetime
+    priority: PriorityEnum
     is_completed: bool
+    status: Optional[str] = "todo"
+    category_label: Optional[str] = "Work"
     created_at: datetime
     updated_at: datetime
     owner_id: int
+    comments_count: Optional[int] = 0
 
     class Config:
         from_attributes = True

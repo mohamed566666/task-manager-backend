@@ -1,6 +1,7 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine, Base
-from app.models import User, Task, Category, Team
+from app.models import User, Task, Category, Team, Comment
 from app.api import auth, categories, tasks, teams
 
 Base.metadata.create_all(bind=engine)
@@ -9,6 +10,15 @@ app = FastAPI(
     title="Task Manager API",
     description="Task Management System",
     version="1.0.0",
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
