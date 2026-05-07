@@ -9,7 +9,6 @@ def upgrade_db():
     cursor = conn.cursor()
 
     try:
-        # Check if column exists
         cursor.execute("PRAGMA table_info(users)")
         columns = [info[1] for info in cursor.fetchall()]
 

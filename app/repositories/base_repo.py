@@ -1,4 +1,3 @@
-# app/repositories/base_repo.py
 from typing import TypeVar, Generic, Type, List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import desc

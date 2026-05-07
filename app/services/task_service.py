@@ -44,7 +44,6 @@ class TaskService:
             category_label=task_data.category_label or 'Work',
         )
 
-        # Remove SQLAlchemy internal keys before passing to repo
         task_dict = {k: v for k, v in task.__dict__.items() if not k.startswith('_')}
         created = self.task_repo.create(**task_dict)
 

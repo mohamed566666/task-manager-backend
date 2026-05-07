@@ -1,7 +1,6 @@
 import os
 import sys
 
-# Setup environment to load the FastAPI app modules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.core.database import SessionLocal
