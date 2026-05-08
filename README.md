@@ -357,10 +357,10 @@ _Placeholder for screenshots_
 
 ## Contributors
 
-Ahmed Mohamed [manager , dev]
-Mohamed Gamal [dev , SE]
-Kamel Mohmed [dev]
-Mahmoud Iraqi [tester]
+Ahmed Mohamed [manager , dev] \
+Mohamed Gamal [dev , SE] \
+Kamel Mohmed [dev] \
+Mahmoud Iraqi [tester] \
 
 ---
 
