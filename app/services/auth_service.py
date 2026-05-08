@@ -9,7 +9,6 @@ class AuthService:
         self.user_repo = UserRepository(db)
 
     def register(self, user_data: UserCreate) -> UserResponse:
-        # Validate that the email is a real, deliverable address (DNS/MX check)
         try:
             from email_validator import validate_email, EmailNotValidError
             try:
@@ -17,7 +16,6 @@ class AuthService:
             except EmailNotValidError as e:
                 raise ValueError(f"Invalid email address: {str(e)}")
         except ImportError:
-            # Fallback: basic format check if email_validator is not installed
             import re
             if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', user_data.email):
                 raise ValueError("Please enter a valid email address")
@@ -73,20 +71,15 @@ class AuthService:
 
         user = self.user_repo.get_by_email(email)
         if not user:
-            # We don't want to leak whether the email exists, so we just return silently
-            # However, for UX in some apps, an error is returned. Let's return normally.
             return True
 
-        # Generate 6 digit OTP
         otp = str(random.randint(100000, 999999))
         
-        # Save to user
         user.reset_otp = otp
         user.reset_otp_expires_at = datetime.utcnow() + timedelta(minutes=5)
         
         self.user_repo.db.commit()
 
-        # Send email
         EmailService.send_otp_email(user.email, otp)
         return True
 
@@ -103,10 +96,8 @@ class AuthService:
         if not user.reset_otp_expires_at or user.reset_otp_expires_at < datetime.utcnow():
             raise ValueError("OTP has expired")
 
-        # Update password
         user.hashed_password = get_password_hash(new_password)
         
-        # Clear OTP
         user.reset_otp = None
         user.reset_otp_expires_at = None
         

@@ -6,7 +6,6 @@ from app.core.config import settings
 class EmailService:
     @staticmethod
     def send_otp_email(to_email: str, otp: str):
-        # Fallback for development if SMTP is not configured
         if not settings.SMTP_SERVER or not settings.SMTP_USERNAME or not settings.SMTP_PASSWORD:
             print(f"\n{'='*50}")
             print(f"EMAIL MOCK (SMTP not fully configured)")
@@ -46,5 +45,3 @@ class EmailService:
             
         except Exception as e:
             print(f"Failed to send OTP email to {to_email}: {e}")
-            # Do not raise error to the user if email sending fails, just log it.
-            # In a real app, you might want to raise an HTTPException.

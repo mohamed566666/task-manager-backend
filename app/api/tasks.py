@@ -31,6 +31,7 @@ def get_all_tasks_admin(
 ):
     """Admin-only: returns tasks from ALL users."""
     from app.models.task import Task
+
     return db.query(Task).order_by(Task.created_at.desc()).all()
 
 
@@ -62,19 +63,24 @@ def update_task(
     current_user: User = Depends(get_current_user),
 ):
     from app.models.task import Task
+
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-    # Only owner or admin can edit
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
     if current_user.role != "admin" and task.owner_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to edit this task")
-    # Apply updates
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to edit this task",
+        )
     update_data = task_data.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(task, field, value)
     db.commit()
     db.refresh(task)
     from app.services.task_service import TaskService
+
     service = TaskService(db)
     return service._task_to_response(task)
 
@@ -88,12 +94,16 @@ def delete_task(
     try:
         service = TaskService(db)
         from app.models.task import Task
+
         task = db.query(Task).filter(Task.id == task_id).first()
         if not task:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-        # Admin can delete any task; user can only delete their own
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+            )
         if current_user.role != "admin" and task.owner_id != current_user.id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+            )
         db.delete(task)
         db.commit()
     except HTTPException:
@@ -112,13 +122,16 @@ def complete_task(
         service = TaskService(db)
         task = service.complete_task(task_id, current_user.id)
         if not task:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+            )
         return task
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
 
 # ── Comments ────────────────────────────────────────────────────────────────
+
 
 @router.get("/{task_id}/comments", response_model=List[CommentResponse])
 def get_comments(
@@ -129,24 +142,38 @@ def get_comments(
     """Get all comments for a task."""
     from app.models.task import Task
     from app.models.comment import Comment
+
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-    comments = db.query(Comment).filter(Comment.task_id == task_id).order_by(Comment.created_at).all()
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
+    comments = (
+        db.query(Comment)
+        .filter(Comment.task_id == task_id)
+        .order_by(Comment.created_at)
+        .all()
+    )
     result = []
     for c in comments:
-        result.append(CommentResponse(
-            id=c.id,
-            content=c.content,
-            created_at=c.created_at,
-            task_id=c.task_id,
-            author_id=c.author_id,
-            author_username=c.author.username if c.author else "Unknown",
-        ))
+        result.append(
+            CommentResponse(
+                id=c.id,
+                content=c.content,
+                created_at=c.created_at,
+                task_id=c.task_id,
+                author_id=c.author_id,
+                author_username=c.author.username if c.author else "Unknown",
+            )
+        )
     return result
 
 
-@router.post("/{task_id}/comments", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{task_id}/comments",
+    response_model=CommentResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 def add_comment(
     task_id: int,
     comment_data: CommentCreate,
@@ -156,11 +183,16 @@ def add_comment(
     """Add a comment to a task."""
     from app.models.task import Task
     from app.models.comment import Comment
+
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
     if not comment_data.content.strip():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Comment cannot be empty")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Comment cannot be empty"
+        )
     comment = Comment(
         content=comment_data.content.strip(),
         task_id=task_id,
