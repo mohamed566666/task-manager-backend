@@ -360,7 +360,7 @@ _Placeholder for screenshots_
 Ahmed Mohamed [manager , dev] \
 Mohamed Gamal [dev , SE] \
 Kamel Mohmed [dev] \
-Mahmoud Iraqi [tester] \
+Mahmoud Iraqi [tester] 
 
 ---
 
