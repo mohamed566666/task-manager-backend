@@ -5,6 +5,7 @@
 **Task Manager** is a comprehensive web-based application designed to help users efficiently organize, track, and manage their tasks. The system provides a user-friendly interface for creating, updating, and deleting tasks, along with features such as categorization, priority setting, deadline management, and progress tracking. Built with a modern full-stack architecture, it supports both individual and team-based task management, ensuring productivity and collaboration.
 
 ### Key Features
+
 - **Task Management**: Create, read, update, and delete tasks with detailed descriptions
 - **Categorization**: Organize tasks into customizable categories (e.g., Work, Study, Personal)
 - **Priority Levels**: Assign high, medium, or low priority to tasks
@@ -18,13 +19,15 @@
 ## Tech Stack
 
 ### Backend
+
 - **Framework**: FastAPI (Python web framework for building APIs)
 - **Language**: Python 3.8+
-- **Database**: SQLite (with SQLAlchemy ORM for data modeling)
+- **Database**: SQLite or Postgresql (with SQLAlchemy ORM for data modeling)
 - **Authentication**: JWT (JSON Web Tokens) for secure user sessions
 - **Additional Libraries**: Pydantic for data validation, Uvicorn for ASGI server
 
 ### Frontend
+
 - **Framework**: React 19+ with Vite for build tooling
 - **Language**: JavaScript (ES6+)
 - **Styling**: Tailwind CSS for responsive design
@@ -34,11 +37,13 @@
 - **Animations**: Framer Motion for smooth transitions
 
 ### Testing Tools
+
 - **Backend Testing**: pytest for unit and integration tests
 - **Frontend Testing**: Jest with React Testing Library for component and user interaction tests
 - **Additional Testing**: Coverage reporting, mock libraries for API and external dependencies
 
 ### Other Tools
+
 - **Version Control**: Git
 - **Package Management**: pip (Python), npm (Node.js)
 - **Development Server**: Uvicorn (backend), Vite dev server (frontend)
@@ -151,6 +156,7 @@ frontend/                          # Frontend application
 ## Installation & Setup
 
 ### Prerequisites
+
 - Python 3.8 or higher
 - Node.js 16 or higher
 - npm or yarn package manager
@@ -159,28 +165,33 @@ frontend/                          # Frontend application
 ### Backend Setup
 
 1. **Clone the repository**:
+
    ```bash
    git clone <repository-url>
    cd task-manager-backend
    ```
 
 2. **Create a virtual environment**:
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 3. **Install Python dependencies**:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 4. **Set up the database**:
+
    ```bash
    python scripts/create_db.py
    ```
 
 5. **Create an admin user (optional)**:
+
    ```bash
    python scripts/create_admin.py
    ```
@@ -194,11 +205,13 @@ frontend/                          # Frontend application
 ### Frontend Setup
 
 1. **Navigate to the frontend directory**:
+
    ```bash
    cd frontend
    ```
 
 2. **Install Node.js dependencies**:
+
    ```bash
    npm install
    ```
@@ -212,12 +225,14 @@ frontend/                          # Frontend application
 ### Full Application Setup
 
 1. **Start the backend server** (in one terminal):
+
    ```bash
    cd task-manager-backend
    python run.py
    ```
 
 2. **Start the frontend server** (in another terminal):
+
    ```bash
    cd frontend
    npm run dev
@@ -233,16 +248,19 @@ frontend/                          # Frontend application
 ### Backend Tests
 
 1. **Navigate to the backend directory**:
+
    ```bash
    cd task-manager-backend
    ```
 
 2. **Run all backend tests with pytest**:
+
    ```bash
    pytest
    ```
 
 3. **Run tests with coverage report**:
+
    ```bash
    pytest --cov=app --cov-report=html
    ```
@@ -255,21 +273,25 @@ frontend/                          # Frontend application
 ### Frontend Tests
 
 1. **Navigate to the frontend directory**:
+
    ```bash
    cd frontend
    ```
 
 2. **Run all frontend tests with Jest**:
+
    ```bash
    npm test
    ```
 
 3. **Run tests in watch mode**:
+
    ```bash
    npm run test:watch
    ```
 
 4. **Run tests with coverage report**:
+
    ```bash
    npm test -- --coverage
    ```
@@ -284,11 +306,13 @@ frontend/                          # Frontend application
 The Task Manager API provides RESTful endpoints for managing tasks, users, categories, and teams. Below is a brief overview of the main endpoints:
 
 ### Authentication Endpoints
+
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 - `GET /api/auth/check-email` - Email availability check
 
 ### Task Management Endpoints
+
 - `GET /api/tasks/` - Retrieve user tasks (or all tasks for admin)
 - `POST /api/tasks/` - Create a new task
 - `PUT /api/tasks/{task_id}` - Update an existing task
@@ -297,12 +321,14 @@ The Task Manager API provides RESTful endpoints for managing tasks, users, categ
 - `POST /api/tasks/{task_id}/comments` - Add a comment to a task
 
 ### Category Management Endpoints
+
 - `GET /api/categories/` - Retrieve all categories
 - `POST /api/categories/` - Create a new category
 - `PUT /api/categories/{category_id}` - Update a category
 - `DELETE /api/categories/{category_id}` - Delete a category
 
 ### Team Management Endpoints
+
 - `GET /api/teams/` - Retrieve user teams
 - `POST /api/teams/` - Create a new team
 - `PUT /api/teams/{team_id}` - Update a team
@@ -312,7 +338,7 @@ For detailed API documentation, visit `http://127.0.0.1:8000/docs` when the back
 
 ## Screenshots or Usage
 
-*Placeholder for screenshots*
+_Placeholder for screenshots_
 
 - Dashboard view showing task statistics and recent tasks
 - Kanban board with drag-and-drop functionality
@@ -323,25 +349,19 @@ For detailed API documentation, visit `http://127.0.0.1:8000/docs` when the back
 
 - **Real-time Collaboration**: Implement WebSocket connections for live updates across multiple users
 - **Advanced Analytics**: Add detailed reporting and analytics dashboards
-- **Mobile Application**: Develop native mobile apps for iOS and Android
 - **Integration APIs**: Connect with external tools like Google Calendar, Slack, or Trello
 - **Advanced Search**: Implement full-text search with filters and sorting options
 - **File Attachments**: Allow users to attach files and documents to tasks
-- **Time Tracking**: Add time logging and reporting features for tasks
-- **Workflow Automation**: Create automated workflows and triggers based on task events
-- **Multi-language Support**: Implement internationalization (i18n) for global users
 - **Scalability Enhancements**: Migrate to PostgreSQL and implement caching with Redis
 - **Security Improvements**: Add OAuth integration, two-factor authentication, and rate limiting
 
 ## Contributors
 
-- **Project Lead**: [Your Name]
-- **Backend Development**: [Team Member]
-- **Frontend Development**: [Team Member]
-- **Testing and QA**: [Team Member]
-
-For contributions, please refer to the project's contribution guidelines.
+Ahmed Mohamed [manager , dev]
+Mohamed Gamal [dev , SE]
+Kamel Mohmed [dev]
+Mahmoud Iraqi [tester]
 
 ---
 
-*This README provides a comprehensive overview of the Task Manager application. For detailed technical documentation, API references, or development guides, please refer to the respective directories and files within the project.*
+_This README provides a comprehensive overview of the Task Manager application. For detailed technical documentation, API references, or development guides, please refer to the respective directories and files within the project._

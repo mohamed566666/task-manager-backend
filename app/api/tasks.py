@@ -130,6 +130,9 @@ def complete_task(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
 
+# ── Comments ────────────────────────────────────────────────────────────────
+
+
 @router.get("/{task_id}/comments", response_model=List[CommentResponse])
 def get_comments(
     task_id: int,
